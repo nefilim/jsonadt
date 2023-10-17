@@ -6,7 +6,7 @@ import io.circe.{Decoder, Encoder, Json}
 import scala.util.Try
 
 object Domain {
-  // "enumeration"
+  // DISCUSS "enumeration"
   sealed abstract class Status(val code: Int, val name: String)
   object Status {
     case object Ok extends Status(200, "Ok")
@@ -19,7 +19,7 @@ object Domain {
 
   sealed trait ResponseBody
   object ResponseBody {
-    // style - match JSON case in the variable names or manually create a Codec?
+    // DISCUSS style - match JSON case in the variable names or manually create a Codec?
     case class Human(ID: Int, FirstName: String, LastName: String)
     case class MultiplePersonResponseBody(Persons: List[Human]) extends ResponseBody
 
@@ -42,17 +42,18 @@ object Domain {
     case object OneFish extends ResponseType("OneFish")
   }
 
-  // invariant .. is there an application for covariance here?
+  // DISCUSS invariant .. is there an application for covariance here?
   case class Response[T <: ResponseBody](
     header: ResponseHeader,
-    responseType: String, // discriminator
+    responseType: String, // DISCUSS discriminator
     body: Option[T] = None,
   )
 
+  // DISCUSS alternative implementation
   case class ResponseAlt(
     header: ResponseHeader,
     responseType: String,
-    body: Option[ResponseBody] = None, // Option is covariant
+    body: Option[ResponseBody] = None, // DISCUSS Option is covariant
   )
 }
 
@@ -60,13 +61,14 @@ object codecs {
   object circe {
     import Domain.*
 
+    // DISUCSS
     // implicit val statusCodec: Codec[Status] = deriveCodec // kekw
     implicit val statusEncoder: Encoder[Status] = Encoder.encodeInt.contramap(s => s.code)
     implicit val statusDecoder: Decoder[Status] = Decoder.decodeInt.emapTry {
       case Status.Ok.code => Try(Status.Ok)
-      // case Status.BadRequest.code => Try(Status.BadRequest) // exhaustive match?
+      // case Status.BadRequest.code => Try(Status.BadRequest) // DISCUSS exhaustive match?
       case Status.Error.code => Try(Status.Ok)
-      // what if this function is not total?
+      // DISCUSS what if this function is not total?
     }
 
     implicit val responseHeaderDecoder: Decoder[ResponseHeader] =
@@ -83,7 +85,7 @@ object codecs {
       implicit val oneFishDecoder: Decoder[OneFishResponseBody] = deriveDecoder
     }
 
-    // Possible Decoders for Response variants
+    // DISCUSS Possible Decoders for Response variants
 
     implicit def decoderCompiler[T <: ResponseBody: Decoder]: Decoder[Response[T]] = deriveDecoder
 

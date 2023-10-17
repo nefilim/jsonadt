@@ -20,6 +20,7 @@ object ParseData extends IOApp.Simple {
       .through(ast.tokenize)
       .through(codec.deserialize)
       .evalTap {
+        // DISCUSS - this does not work
         case _: Response[ResponseBody.MultiplePersonResponseBody] => IO.println("peeps!")
         case _: Response[ResponseBody.OneFishResponseBody] => IO.println("¡un fish!")
       }
